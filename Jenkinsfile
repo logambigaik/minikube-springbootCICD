@@ -1,34 +1,52 @@
-pipeline{
+pipeline {
     agent any
-    parameters {
-	    string(name: 'ImageTag', description: "Name of the docker build")
+    environment {
+        registry = "naresh240/springboot-k8s:latest"
+        registryCredential = 'docker-credentials'
+        dockerImage = ''
     }
-    tools { 
-        maven 'maven3' 
-    }
-    stages{
-        stage('git checkout'){
-            steps{
-                git 'https://github.com/Naresh240/spring-boot-hello.git'
-            }
-        }
+    stages {
+        stage ('checkout') {
+            steps {
+                checkout([$class: 'GitSCM', 
+                		branches: [[name: '*/main']],
+                		doGenerateSubmoduleConfigurations: false, extensions: [],
+                		submoduleCfg: [], 
+                		userRemoteConfigs: [[url: 'https://github.com/Naresh240/springbootCICD-demo.git']]])
+			}
+		}
         stage('Build Maven'){
             steps{
                 sh 'mvn clean install -DskipTests=true'
             }
         }
-        stage("Docker Build") {
-	        steps {
-	            sh 'docker build -t naresh240/spring-boot-hello:${ImageTag} .'
-	        }
+        stage ('Build docker image') {
+            steps {
+                script {
+                    dockerImage=docker.build registry
+                }
+            }
         }
-        stage("Docker Push") {
-	        steps {
-               withCredentials([usernamePassword(credentialsId: 'docker_credentials', passwordVariable: 'docker_password', usernameVariable: 'docker_username')]) {
-                   sh 'docker login -u ${docker_username} -p ${docker_password}'
-               }
-               sh 'docker push naresh240/spring-boot-hello:${ImageTag}'
-           }
+        stage('Upload Image') {
+            steps{   
+                script {
+                    docker.withRegistry( '', registryCredential ) {
+                    dockerImage.push()
+                    }
+                }
+            }
         }
-    }
+        stage ('K8S Deploy') {
+            steps {
+                script {
+    				withCredentials([kubeconfigFile(credentialsId: 'kubeConfig', variable: 'KUBECONFIG')]) {
+                        sh '''
+                            kubectl apply -f deployement.yml
+                            kubectl apply -f service.yml
+                        '''
+    				}
+                }
+            }
+        }
+	}
 }
