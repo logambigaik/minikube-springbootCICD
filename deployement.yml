@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: springboot-container
-        image: naresh240/springboothello
+        image: naresh240/springboothello:v1
         imagePullPolicy: Always
         ports:
         - containerPort: 8080          
