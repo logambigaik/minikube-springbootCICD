@@ -4,11 +4,8 @@ metadata:
   name: spring-boot-hello
   labels:
     app: spring-boot-hello
-  namespace: playground
-  annotations:
-    flux.wave.works/automated: "true"
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: spring-boot-hello
@@ -18,5 +15,8 @@ spec:
         app: spring-boot-hello
     spec:
       containers:
-        - name: spring-cloud-discovery
-          image: naresh240/spring-boot-hello:v2
+      - name: springboot-container
+        image: naresh240/springboothello
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080          
