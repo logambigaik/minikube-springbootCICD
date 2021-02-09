@@ -5,6 +5,7 @@
   - Install GIT
   - Install Maven
   - Install Docker
+  - Install Jenkins
   - Minikube SetUp
   
 # Clone code from github:
@@ -13,11 +14,11 @@
 # Build Maven Artifact:
     mvn clean install
 # Build Docker image for Springboot Application:
-    docker build -t naresh240/springboot-hello:latest .
+    docker build -t naresh240/springboot-k8s:latest .
 # Docker login:
     docker login
 # Push docker image to dockerhub:
-    docker push naresh240/spring-boot-hello:latest
+    docker push naresh240/springboot-k8s:latest
 # Deploy Springboot Application on EKS-Cluster:
     kubectl apply -f deployement.yml
 # If you use Jenkins, we can deploy with Jenkins pipelines also
