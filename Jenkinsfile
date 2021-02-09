@@ -1,52 +1,47 @@
 pipeline {
     agent any
-    environment {
-        registry = "naresh240/springboot-k8s:latest"
-        registryCredential = 'docker-credentials'
-        dockerImage = ''
-    }
+	environment {
+		registry = 'naresh240/springboot-test:v1'
+		registryCredentials = 'docker-credentials'
+		dockerImage = ''
+	}
     stages {
-        stage ('checkout') {
+        stage ('SCM') {
             steps {
                 checkout([$class: 'GitSCM', 
-                		branches: [[name: '*/main']],
-                		doGenerateSubmoduleConfigurations: false, extensions: [],
-                		submoduleCfg: [], 
-                		userRemoteConfigs: [[url: 'https://github.com/Naresh240/springbootCICD-demo.git']]])
-			}
-		}
-        stage('Build Maven'){
-            steps{
-                sh 'mvn clean install -DskipTests=true'
+                	branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, 
+                	extensions: [], 
+                	submoduleCfg: [], 
+                	userRemoteConfigs: [[url: 'https://github.com/Naresh240/springbootCICD-demo.git']]])
             }
         }
-        stage ('Build docker image') {
+        stage ('Build Artifact') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+        stage ('Build Docker Image') {
             steps {
                 script {
-                    dockerImage=docker.build registry
+                    dockerImage = docker.build registry
                 }
             }
         }
-        stage('Upload Image') {
-            steps{   
+        stage ('Docker Push') {
+            steps {
                 script {
-                    docker.withRegistry( '', registryCredential ) {
-                    dockerImage.push()
+                    docker.withRegistry('',registryCredentials) {
+                        dockerImage.push()
                     }
                 }
             }
         }
-        stage ('K8S Deploy') {
+        stage ('Deploy in K8s') {
             steps {
-                script {
-    				withCredentials([kubeconfigFile(credentialsId: 'kubeConfig', variable: 'KUBECONFIG')]) {
-                        sh '''
-                            kubectl apply -f deployement.yml
-                            kubectl apply -f service.yml
-                        '''
-    				}
+                withCredentials([kubeconfigFile(credentialsId: 'kube-credentials', variable: 'KUBECONFIG')]) {
+                	sh 'sudo kubectl apply -f deployement.yml'
                 }
             }
         }
-	}
+    }
 }
