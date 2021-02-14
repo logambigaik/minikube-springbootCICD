@@ -10,8 +10,8 @@
 # Minukube Set-UP
   [minikube](https://github.com/Naresh240/minikube-setup/blob/main/README.md)
 # Clone code from github:
-    git clone https://github.com/Naresh240/springbootCICD-demo.git
-    cd springbootCICD-demo
+    git clone https://github.com/Naresh240/minikube-springbootCICD.git
+    cd minikube-springbootCICD
 # Build Maven Artifact:
     mvn clean install
 # Build Docker image for Springboot Application:
